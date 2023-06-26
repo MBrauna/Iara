@@ -1,0 +1,68 @@
+version: '3.9'
+services:
+  # BANCO DE DADOS
+  postgres:
+    container_name: iara-pgsql
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: iara_user
+      POSTGRES_PASSWORD: development
+      POSTGRES_DB: iara
+    ports:
+      - 5432:5432
+    volumes:
+      - ./iara-psql/db:/var/lib/postgresql/data
+      - ./iara-psql/scripts:/docker-entrypoint-initdb.d
+    networks:
+      - iara-network
+
+  mongodb:
+    container_name: iara-mongodb
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: iara_user
+      MONGO_INITDB_ROOT_PASSWORD: development
+      MONGO_INITDB_DATABASE: iara
+    volumes:
+      - ./iara-mongodb/db:/data/db
+      - ./iara-mongodb/scripts:/docker-entrypoint-initdb.d
+    ports:
+      - 27017:27017
+    networks:
+        - iara-network
+
+  # Clientes para banco de dados
+  mongo-express:
+    container_name: mongo-express-iara
+    image: mongo-express
+    restart: always
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: iara_user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: development
+    ports:
+      - 8081:8081
+    depends_on:
+      - mongodb
+    networks:
+      - iara-network
+
+  pgadmin:
+    container_name: pgadmin4_iara
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8082:80"
+    depends_on:
+      - mongodb
+    networks:
+      - iara-network
+
+networks:
+  iara-network:
